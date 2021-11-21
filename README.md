@@ -2,4 +2,5 @@
 Watch yourself zoom through the cosmos with this basic little screensaver. 
 
 ## Instructions of use 
-Download the `index.html` file and then drawg it into a browser. I coded everything in one file for the sake of ease of use since it's a small program. 
+Download the `index.html` and `ss.png` files. Make sure they are in the same folder. Then drag the `index.html` file into a browser. 
+I put all the code in one file for of ease of use and since it's a small program. The image(png) is only for the icon, so the the whole simulation will still work with only the `index.html` file. 
