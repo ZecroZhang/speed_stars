@@ -5,6 +5,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Stars</title>
+	<link href="./ss.png" rel="icon">
 </head>
 <body style="margin: 0px;overflow: hidden;">
 	<canvas id="canvas"></canvas>
@@ -47,12 +48,17 @@
 				ctx.arc(this.x, this.y, size, 0, Math.PI*2)
 				ctx.fill()
 
+				//This isn't accurate but to prevent huge stars. If delta > glowTo-glow then we generate a new glow to.
+				//The glow controller is a bit messy, and has glitches when the fps isn't solid(5-10fps).
 				this.glow += this.glowTo*delta
 
 				if (this.maxGlow <= this.glow) {
-					this.glowTo = 1-this.maxGlow
+					this.glowTo = -this.maxGlow
+					this.glow = this.maxGlow
 				} else if (this.glow <= 1) {
 					this.glowTo = this.maxGlow-this.glow
+					//Low fps issue when delta is >~ 0.4
+					if (this.glow < 0) this.glow = 0
 				}
 				// Create gradient
 				var grd = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, size*this.glow)
@@ -65,7 +71,7 @@
 				ctx.fill()
 
 			}
-			update (pos,delta) {
+			update (pos, delta) {
 				this.relativeSpeed += this.travaled/(canvas.width**2)
 
 				this.direction.x = Math.cos(this.angle)*this.relativeSpeed
@@ -95,9 +101,9 @@
 				this.x = (Math.random()-0.5)*80
 				this.y = (Math.random()-0.5)*80
 				
-				this.angle = Math.atan2(this.y , this.x)
+				this.angle = Math.atan2(this.y, this.x)
 				
-				this.travaled = Math.hypot(this.x,this.y)
+				this.travaled = Math.hypot(this.x, this.y)
 
 				this.x += canvas.width/2
 				this.y += canvas.height/2
@@ -154,38 +160,50 @@
 		}
 		
 		setInterval(() => {
-			stars.push(new Star())
+			if (!paused) {
+				stars.push(new Star())
+			}
 		}, 15)
 
 		setInterval(() => {
-			bgStars.push(new BackgroundStars())
+			if (!paused) {
+				bgStars.push(new BackgroundStars())
+			}
 		}, 250)
 	
-		var delta = 0, lastchecked = Date.now()
+		var delta = 0, lastchecked = Date.now(), paused = false, pauseTime
 		AnimationLoop()
 		
 		function AnimationLoop () {
-			requestAnimationFrame(AnimationLoop)
 			delta = (Date.now()-lastchecked)/1000
 			lastchecked = Date.now()
-
 			ctx.fillStyle = "#000000"
 			ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 			bgStars.forEach((bgstar, pos) => {
-				bgstar.update(pos,delta)
+				bgstar.update(pos, delta)
 			})
 
 			stars.forEach((star,pos) => {
 				//delta = fraction of a second, because speed is calculated per second.
-				star.update(pos,delta)
+				star.update(pos, delta)
 			})
-						
+			requestAnimationFrame(AnimationLoop)
 		}
 		
 		window.addEventListener("resize", () => {
 			canvas.width = window.innerWidth
 			canvas.height = window.innerHeight
+		})
+		document.addEventListener("visibilitychange", () => {
+			if (document.visibilityState == "visible") {
+				paused = false
+				lastchecked += (Date.now()-pauseTime)
+				//Pretend like no time passed during the pause ^
+			} else {
+				paused = true
+				pauseTime = Date.now()
+			}
 		})
 
 	</script>
